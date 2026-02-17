@@ -13,30 +13,20 @@ from langchain.chains import create_retrieval_chain
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 
-# --------------------------------------------------
+
 # Load Environment Variables
-# --------------------------------------------------
 load_dotenv()
-
 groq_api_key = os.getenv("GROQ_API_KEY")
-
-# --------------------------------------------------
 # Streamlit UI
-# --------------------------------------------------
 st.title("📄 RAG Document Q&A With Groq &llama3")
 
-# --------------------------------------------------
+
 # LLM Setup (Groq Only)
-# --------------------------------------------------
 llm = ChatGroq(
     groq_api_key=groq_api_key,
     model_name="llama-3.1-8b-instant"
 
 )
-
-# --------------------------------------------------
-# Prompt Template
-# --------------------------------------------------
 prompt = ChatPromptTemplate.from_template(
     """
     Answer the question based only on the provided context.
@@ -48,16 +38,10 @@ prompt = ChatPromptTemplate.from_template(
     Question: {input}
     """
 )
-
-# --------------------------------------------------
-# Create Vector Embeddings
-# --------------------------------------------------
 def create_vector_embedding():
     if "vectors" not in st.session_state:
 
         with st.spinner("Processing documents..."):
-
-            # ✅ FREE Embeddings (No API Key Required)
             st.session_state.embeddings = HuggingFaceEmbeddings(
                 model_name="sentence-transformers/all-MiniLM-L6-v2"
             )
@@ -79,22 +63,11 @@ def create_vector_embedding():
                 final_documents,
                 st.session_state.embeddings
             )
-
-# --------------------------------------------------
-# Button to Create Embeddings
-# --------------------------------------------------
 if st.button("📚 Create Document Embeddings"):
     create_vector_embedding()
     st.success("Vector Database is Ready ✅")
 
-# --------------------------------------------------
-# User Input
-# --------------------------------------------------
 user_prompt = st.text_input("Ask a question from the research papers")
-
-# --------------------------------------------------
-# Answer Section
-# --------------------------------------------------
 if user_prompt:
 
     if "vectors" not in st.session_state:
