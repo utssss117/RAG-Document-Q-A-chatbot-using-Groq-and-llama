@@ -14,8 +14,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 
 # Load Environment Variables from .env file
-load_dotenv()
-groq_api_key = os.getenv("GROQ_API_KEY")
+groq_api_key = st.secrets["GROQ_API_KEY"]
 
 # Streamlit UI
 st.set_page_config(page_title="Groq RAG Chatbot", page_icon="📄")

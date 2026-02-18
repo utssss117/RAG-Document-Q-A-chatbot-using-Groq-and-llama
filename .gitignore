@@ -144,4 +144,13 @@ dmypy.json
 .Trashes
 ehthumbs.db
 Thumbs.db
+# Ignore Streamlit secrets
+.streamlit/secrets.toml
+
+# Ignore local environment variables
 .env
+
+# Ignore Python cache and virtual environments
+__pycache__/
+venv/
+.venv/
