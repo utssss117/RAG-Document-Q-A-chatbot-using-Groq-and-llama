@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 # LangChain Imports
 from langchain_groq import ChatGroq
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_huggingface import HuggingFaceEmbeddings # Updated for better compatibility
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain_core.prompts import ChatPromptTemplate
@@ -13,23 +13,29 @@ from langchain.chains import create_retrieval_chain
 from langchain_community.vectorstores import FAISS
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 
-
-# Load Environment Variables
+# Load Environment Variables from .env file
 load_dotenv()
 groq_api_key = os.getenv("GROQ_API_KEY")
+
 # Streamlit UI
-st.title("📄 RAG Document Q&A With Groq &llama3")
+st.set_page_config(page_title="Groq RAG Chatbot", page_icon="📄")
+st.title("📄 RAG Document Q&A With Groq & Llama 3")
 
+# 1. Check if API Key exists before initializing LLM
+if not groq_api_key:
+    st.error("❌ GROQ_API_KEY not found. Please add it to your .env file.")
+    st.stop()
 
-# LLM Setup (Groq Only)
+# LLM Setup
 llm = ChatGroq(
     groq_api_key=groq_api_key,
     model_name="llama-3.1-8b-instant"
-
 )
+
 prompt = ChatPromptTemplate.from_template(
     """
     Answer the question based only on the provided context.
+    If the answer is not in the context, say "I cannot find the answer in the provided documents."
     
     <context>
     {context}
@@ -38,10 +44,17 @@ prompt = ChatPromptTemplate.from_template(
     Question: {input}
     """
 )
-def create_vector_embedding():
-    if "vectors" not in st.session_state:
 
-        with st.spinner("Processing documents..."):
+# 2. Vector Embedding Logic
+def create_vector_embedding():
+    # Only run if vectors don't exist yet
+    if "vectors" not in st.session_state:
+        if not os.path.exists("research_papers"):
+            st.error("📁 'research_papers' folder not found! Please create it and add PDFs.")
+            return
+
+        with st.spinner("✨ Creating embeddings... This may take a minute."):
+            # Using HuggingFaceEmbeddings (runs locally on your CPU/GPU)
             st.session_state.embeddings = HuggingFaceEmbeddings(
                 model_name="sentence-transformers/all-MiniLM-L6-v2"
             )
@@ -55,7 +68,6 @@ def create_vector_embedding():
                 chunk_size=1000,
                 chunk_overlap=200
             )
-
             final_documents = text_splitter.split_documents(docs[:50])
 
             # Create FAISS vector store
@@ -63,32 +75,37 @@ def create_vector_embedding():
                 final_documents,
                 st.session_state.embeddings
             )
-if st.button("📚 Create Document Embeddings"):
+            st.success("✅ Vector Database is Ready!")
+
+# Sidebar/Button UI
+if st.button("📚 Initialize Document Database"):
     create_vector_embedding()
-    st.success("Vector Database is Ready ✅")
 
-user_prompt = st.text_input("Ask a question from the research papers")
+# 3. Chat Interface
+user_prompt = st.text_input("Ask a question from the research papers:")
+
 if user_prompt:
-
     if "vectors" not in st.session_state:
-        st.warning("Please create embeddings first.")
+        st.warning("⚠️ Please click the 'Initialize Document Database' button first.")
     else:
-
+        # Create the chains
         document_chain = create_stuff_documents_chain(llm, prompt)
         retriever = st.session_state.vectors.as_retriever()
         retrieval_chain = create_retrieval_chain(retriever, document_chain)
 
-        start = time.process_time()
-
+        # Performance tracking
+        start_time = time.perf_counter()
         response = retrieval_chain.invoke({"input": user_prompt})
+        end_time = time.perf_counter()
 
+        # Display results
         st.write("### 📌 Answer:")
         st.write(response["answer"])
+        st.info(f"⏱ Response generated in {end_time - start_time:.2f} seconds")
 
-        st.write(f"⏱ Response time: {time.process_time() - start:.2f} seconds")
-
-        # Show Retrieved Documents
-        with st.expander("🔎 Document Similarity Search Results"):
-            for doc in response["context"]:
+        # Show Retrieved Documents (for transparency)
+        with st.expander("🔎 Source Context (Similarity Search)"):
+            for i, doc in enumerate(response["context"]):
+                st.markdown(f"**Source {i+1}:**")
                 st.write(doc.page_content)
-                st.write("--------------------------------------------------")
+                st.divider()
