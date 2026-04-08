@@ -12,7 +12,7 @@ A Retrieval-Augmented Generation (RAG) chatbot that allows you to ask questions 
 
 ## Prerequisites
 
-- Python 3.8 or higher
+- Python 3.10 or higher
 - Groq API key (get one from [Groq Console](https://console.groq.com/))
 
 ## Installation
@@ -25,10 +25,12 @@ A Retrieval-Augmented Generation (RAG) chatbot that allows you to ask questions 
    ```
 
 3. **Set up environment variables:**
-   Create a `.env` file in the root directory and add your Groq API key:
+   Create a `.env` file in the root directory with your API keys. Copy from `.env.example` and fill in your credentials:
    ```
    GROQ_API_KEY=your_groq_api_key_here
+   HF_API_KEY=your_huggingface_api_key_here  # Optional, for HuggingFace models
    ```
+   ⚠️ **Important**: Never commit `.env` to version control - it's in `.gitignore` by default
 
 4. **Add your PDF documents:**
    Place your research papers and documents in the `research_papers/` folder.
@@ -40,9 +42,10 @@ A Retrieval-Augmented Generation (RAG) chatbot that allows you to ask questions 
    streamlit run main.py
    ```
 
-2. **Create document embeddings:**
-   - Click the "📚 Create Document Embeddings" button
+2. **Initialize the document database:**
+   - Click the "📚 Initialize Document Database" button
    - Wait for the processing to complete (this may take a few minutes for large documents)
+   - ✅ The vector database will be cached in memory for this session
 
 3. **Ask questions:**
    - Enter your question in the text input field
@@ -81,16 +84,31 @@ A Retrieval-Augmented Generation (RAG) chatbot that allows you to ask questions 
 
 ## Configuration
 
-The application uses the following default settings:
-- **Model**: llama-3.1-8b-instant
+The LLM Model**: llama-3.1-8b-instant (via Groq API)
 - **Embedding Model**: sentence-transformers/all-MiniLM-L6-v2
-- **Chunk Size**: 1000 characters
-- **Chunk Overlap**: 200 characters
+- **Chunk Size**: 700 characters
+- **Chunk Overlap**: 150 characters
+- **Retrieval Method**: Maximum Marginal Relevance (MMR) with k=5 documents
+- **Max Input Prompt**: 2000 characters
 - **Max Documents**: 50 (for processing efficiency)
 
-## Troubleshooting
+| Issue | Solution |
+|-------|----------|
+| **GROQ_API_KEY not found error** | Create a `.env` file in the project root with `GROQ_API_KEY=your_key_here`. Copy `.env.example` as a template. |
+| **No documents found** | Ensure PDF files are placed in the `research_papers/` folder at the project root. |
+| **Slow embedding creation** | First-time embedding creation takes time. Embeddings are cached in memory during the session. |
+| **"Initialize database first" warning** | Click the "📚 Initialize Document Database" button before asking questions. |
+| **Empty or whitespace API key** | Ensure your API key in `.env` is not empty or contains only whitespace. |
+| **Very long responses** | Questions longer than 2000 characters are limited. Break your question into smaller parts. |
 
-- **No API key error**: Make sure your `.env` file contains a valid `GROQ_API_KEY`
+## Production Deployment
+
+For production use:
+- Use an `.env` file with your production API keys
+- Consider implementing document caching to avoid re-processing PDFs
+- Add monitoring/logging for API usage and errors
+- Test with your specific PDF documents before deploying
+- Keep `sentence-transformers` and `torch` dependencies up to date
 - **No documents found**: Ensure PDF files are placed in the `research_papers/` folder
 - **Slow processing**: For large document collections, consider increasing the chunk size or reducing the number of documents
 

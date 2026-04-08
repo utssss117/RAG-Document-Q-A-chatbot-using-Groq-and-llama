@@ -149,8 +149,15 @@ Thumbs.db
 
 # Ignore local environment variables
 .env
+.env.local
+.env.*.local
 
 # Ignore Python cache and virtual environments
 __pycache__/
 venv/
 .venv/
+
+# Ignore FAISS vector database and embeddings
+*.faiss
+embeddings_cache/
+.faiss_index/
