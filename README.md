@@ -10,6 +10,10 @@ A Retrieval-Augmented Generation (RAG) chatbot that allows you to ask questions 
 - ⚡ **Fast Responses**: Get answers with response time tracking
 - 📊 **Document Insights**: View retrieved document chunks for transparency
 
+## 🚀 Live Demo
+
+Try the chatbot online: [https://rag-document-q-a-chatbot-using-groq-and-llama-kuanicxo24agy6ut.streamlit.app/](https://rag-document-q-a-chatbot-using-groq-and-llama-kuanicxo24agy6ut.streamlit.app/)
+
 ## Prerequisites
 
 - Python 3.10 or higher
