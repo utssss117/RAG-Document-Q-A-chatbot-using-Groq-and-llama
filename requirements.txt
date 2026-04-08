@@ -11,6 +11,7 @@ langchain-groq>=0.1.4
 sentence-transformers>=2.6.1
 faiss-cpu>=1.13.2
 torch>=2.7.0
+torchvision>=0.18.0
 transformers>=4.38.2
 tokenizers>=0.15.2
 
